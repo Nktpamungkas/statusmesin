@@ -34,7 +34,7 @@ while($dataMain = db2_fetch_assoc($queryMain)) :
     }
 ?>
     <div class="machine">
-        <img <?= $blink; ?> src="<?= $icon; ?>" alt="Mesin Running">
+        <img <?= $blink; ?> src="img/<?= $icon; ?>" alt="Mesin Running">
         <h3><?= $dataMain['NAMA_MESIN']; ?></h3>
         <div class="status <?= $status; ?>"><span style="text-transform:uppercase"><?= $status; ?></span></div>
     </div>
