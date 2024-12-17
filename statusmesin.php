@@ -1,10 +1,11 @@
-<?php require_once "koneksi.php" ?>
+<?php require_once "koneksi.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Status Mesin</title>
+  <title>Status Mesin MTC</title>
+  <link rel="icon" href="img\favicon.ico" type="image/x-icon">
   <style>
     * {
       margin: 0;
@@ -23,7 +24,7 @@
 
     .container {
       display: grid;
-      grid-template-columns: repeat(15, 1fr); /* 5 kolom per baris */
+      grid-template-columns: repeat(10, 1fr); /* 5 kolom per baris */
       grid-gap: 1px; /* Jarak antar kotak */
       padding: 2px;
       /* background-color: #ffffff; */
@@ -100,46 +101,39 @@
   </style>
 </head>
 <body>
-  <?php
-    $resultMain = "SELECT
-                    TRIM(p.CODE) AS CODE,
-                    COALESCE(TRIM(p.RESOURCECODE), '???') AS NAMA_MESIN,
-                    TRIM(p.HALLNOCODE) AS DEPT
-                  FROM
-                    PMBOM p
-                  LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID
-                  WHERE 
-                    a.FIELDNAME = 'StatusMesin' 
-                    AND a.NAMEENTITYNAME = 'PMBoM' 
-                    AND VALUEBOOLEAN = 1
-                    AND p.HALLNOCODE = 'FIN'
-                  ORDER BY 
-                    p.RESOURCECODE ASC, p.HALLNOCODE ASC";
-    $queryMain  = db2_exec($conn1, $resultMain);
-  ?>
   <div class="container">
-    <div class="loading">Menyiapkan data...</div>
+    <!-- <div class="loading">Menyiapkan data...</div> -->
+    <?php require_once "fetch_data.php"; ?>
   </div>
 
   <!-- jQuery for AJAX -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    $(document).ready(function(){
-      function loadData() {
-        $.ajax({
-          url: 'fetch_data.php', // URL ke file PHP yang mengambil data dari database
-          method: 'GET',
-          success: function(data) {
-            $('.container').html(data); // Update konten dengan data terbaru
-          },
-          error: function() {
-            alert('Error fetching data.');
-          }
-        });
-      }
+    $(document).ready(function() {
+        const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
+        let currentIndex = 0; // Indeks untuk melacak DEPT yang sedang dikirim
 
-      setInterval(loadData, 2000); // Set interval untuk memperbarui data setiap 5 detik
+        function loadData() {
+            const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
+            $.ajax({
+                url: 'fetch_data.php', // URL ke file PHP
+                method: 'GET',
+                data: { DEPT: currentDept }, // Kirim DEPT saat ini
+                success: function(data) {
+                    $('.container').html(data); // Update konten dengan data terbaru
+                },
+                error: function() {
+                    alert('Error fetching data.');
+                }
+            });
+
+            // Perbarui indeks untuk siklus berikutnya
+            currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
+        }
+
+        setInterval(loadData, 120000); // Set interval untuk memperbarui data setiap 120 detik
     });
-  </script>
+</script>
+
 </body>
 </html>

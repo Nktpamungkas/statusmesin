@@ -1,10 +1,14 @@
 <?php
 require_once "koneksi.php";
 
+// Ambil parameter DEPT dari request
+$dept = isset($_GET['DEPT']) ? $_GET['DEPT'] : 'BRS';
+
 $resultMain = "SELECT
                 TRIM(p.CODE) AS CODE,
-                COALESCE(TRIM(p.RESOURCECODE), '???') AS NAMA_MESIN,
-                TRIM(p.HALLNOCODE) AS DEPT
+                COALESCE(TRIM(p.RESOURCECODE), '???') AS NO_MESIN,
+                TRIM(p.HALLNOCODE) AS DEPT,
+                p.SEARCHDESCRIPTION
               FROM
                 PMBOM p
               LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID
@@ -12,7 +16,7 @@ $resultMain = "SELECT
                 a.FIELDNAME = 'StatusMesin' 
                 AND a.NAMEENTITYNAME = 'PMBoM' 
                 AND VALUEBOOLEAN = 1
-                AND p.HALLNOCODE = 'FIN'
+                AND p.HALLNOCODE = '$dept'
               ORDER BY 
                 p.RESOURCECODE ASC, p.HALLNOCODE ASC";
 $queryMain = db2_exec($conn1, $resultMain);
@@ -34,8 +38,8 @@ while($dataMain = db2_fetch_assoc($queryMain)) :
     }
 ?>
     <div class="machine">
-        <img <?= $blink; ?> src="img/<?= $icon; ?>" alt="Mesin Running">
-        <h3><?= $dataMain['NAMA_MESIN']; ?></h3>
-        <div class="status <?= $status; ?>"><span style="text-transform:uppercase"><?= $status; ?></span></div>
+      <a href="DetailStatusMesin.php?pmmachine=<?= $dataMain['CODE']; ?>" target="_blank"><img <?= $blink; ?> src="img/<?= $icon; ?>" alt="Mesin Running"></a>
+      <h3><center><?= $dataMain['SEARCHDESCRIPTION']; ?></center></h3>
+      <div class="status <?= $status; ?>"><span style="text-transform:uppercase"><?= $status; ?></span></div>
     </div>
 <?php endwhile; ?>
