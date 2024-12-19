@@ -25,7 +25,7 @@
       display: grid;
       grid-template-columns: repeat(10, 1fr); /* 5 kolom per baris */
       grid-gap: 1px; /* Jarak antar kotak */
-      padding: 2px;
+      padding: 10px;
     }
 
     .machine {
@@ -92,35 +92,47 @@
       font-size: 1.5rem;
       z-index: 10;
     }
-
-    #notification {
-      display: none;
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background:rgb(241, 203, 76);
-      color: #000;
-      padding: 10px;
-      border: 1px solid #ffecb5;
-      border-radius: 5px;
-      z-index: 1000;
-      transition: opacity 0.5s ease-in-out;
-    }
   </style>
+  <link rel="stylesheet" type="text/css" href="files\assets\pages\notification\notification.css">
+  <link rel="stylesheet" type="text/css" href="alert/toastr.css" rel="stylesheet">
 </head>
 <body>
-  <div id="notification"></div>
   <div class="container">
     <!-- Mesin akan dirender di sini -->
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Required Jquery -->
+  <script type="text/javascript" src="files\bower_components\jquery\js\jquery.min.js"></script>
+  <script type="text/javascript" src="files\bower_components\jquery-ui\js\jquery-ui.min.js"></script>
+  <script type="text/javascript" src="files\bower_components\popper.js\js\popper.min.js"></script>
+  <script type="text/javascript" src="files\bower_components\bootstrap\js\bootstrap.min.js"></script>
+  <!-- notification js -->
+  <script type="text/javascript" src="files\assets\js\bootstrap-growl.min.js"></script>
+  <script type="text/javascript" src="files\assets\pages\notification\notification.js"></script>
+  <script src="alert/toastr.js"></script>
+  <script type="text/javascript" src="files\assets\js\script.js"></script>
+  <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
+
   <script>
     $(document).ready(function () {
-        // const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
-        const depts = ['FIN']; // List DEPT
+        const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
+        // const depts = ['FIN']; // List DEPT
         let currentIndex = 0; // Indeks untuk melacak DEPT yang sedang dikirim
 
+        function showToastInfo(message) {
+          toastr.info(message, 'Tiket Baru', {
+            closeButton: true,
+            progressBar: false,
+            timeOut: 10000, // Durasi muncul (dalam milidetik, di sini 5000ms = 5 detik)
+            extendedTimeOut: 1000, // Waktu tambahan saat mouse hover (dalam milidetik)
+            positionClass: 'toast-bottom-right', // Posisi di pojok kanan bawah
+            showEasing: "linear",
+            hideEasing: "swing",
+            showMethod: "show",
+            hideMethod: "hide"
+          });
+        }
+        
         function toggleLoading(show) {
             if (show) {
                 if (!$('.loading').length) {
@@ -142,10 +154,6 @@
                 data: { DEPT: currentDept }, // Kirim DEPT saat ini
                 success: function (response) {
                   console.log(response);
-                    // toggleLoading(false);
-                    if (response.status === 'new_data') {
-                        renderNotifications(response.new_data); // Tampilkan notifikasi
-                    }
                     // Periksa apakah machine_data ada dan tidak kosong
                     if (response.machine_data && response.machine_data.length > 0) {
                         renderMachines(response.machine_data); // Perbarui konten mesin
@@ -164,68 +172,85 @@
             // Perbarui indeks untuk siklus berikutnya
             currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
         }
+        
+        function loadDataNotification() {
+            const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
+            // toggleLoading(true);
+            $.ajax({
+                url: 'fetch_data.php', // URL ke file PHP
+                method: 'GET',
+                dataType: 'json',
+                data: { DEPT: currentDept }, // Kirim DEPT saat ini
+                success: function (response) {
+                  if (response.machine_data && response.machine_data.length > 0) {
+                    if (response.status === 'new_data') {
+                      console.log(response.new_data);
+                      renderNotifications(response.new_data); // Tampilkan notifikasi
+                      renderSpeakNotification(response.new_data); // Tampilkan notifikasi suara
+                    }
+                  }else {
+                    // Tampilkan placeholder atau pesan bahwa tidak ada data mesin
+                    $('.container').html('<div>No machines available for this department.</div>');
+                  }
+                },
+                error: function () {
+                    // toggleLoading(false);
+                    // console.log(response);
+                    alert('Error fetching data.');
+                }
+            });
+
+            // Perbarui indeks untuk siklus berikutnya
+            currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
+        }
 
         function renderNotifications(newData) {
-          let notificationContent = '';
+          // Durasi jeda antar notifikasi (ms)
+          const delay = 2000;
+          
+          newData.forEach((data, index) => {
+            setTimeout(() => {
+                showToastInfo(`Mesin: ${data.machine} <br>
+                              Description: ${data.description}`);
+            }, index * delay);
+          });
+        }
 
-          // Cek apakah browser mendukung Web Speech API
-          if (!('speechSynthesis' in window)) {
-              console.error('Browser does not support text-to-speech');
+        function renderSpeakNotification(newData) {
+          if (typeof responsiveVoice === 'undefined') {
+              console.error('ResponsiveVoice.js is not loaded or supported.');
               alert('Text-to-speech is not supported in this browser.');
               return;
           }
 
-          const synth = window.speechSynthesis; // Inisialisasi SpeechSynthesis
           let index = 0; // Indeks untuk menelusuri array `newData`
-
-          newData.forEach(data => {
-              notificationContent += `
-                  <div class="notification-item">
-                      <strong>New Ticket:</strong><br>
-                      Ticket: ${data.ticket_code}<br>
-                      Machine: ${data.machine}<br>
-                      Description: ${data.description}
-                  </div><br>
-              `;
-          });
-
-          $('#notification').html(notificationContent).fadeIn();
 
           // Fungsi untuk membaca teks berikutnya
           function speakNext() {
               if (index < newData.length) {
                   const data = newData[index];
-                  const utterance = new SpeechSynthesisUtterance(
-                      `TIKET BARU, MESIN ${data.machine}. ${data.description}.`
+                  const message = `TIKET BARU, MESIN ${data.machine}`;
+
+                  // Panggil fungsi speak dari ResponsiveVoice
+                  responsiveVoice.speak(
+                      message,                // Teks yang akan dibacakan
+                      'Indonesian Female',    // Suara
+                      {
+                          rate: 1,            // Kecepatan bicara (0.1 - 2)
+                          pitch: 1,           // Nada bicara (0 - 2)
+                          volume: 1,          // Volume (0 - 1)
+                          onend: () => {      // Callback setelah selesai bicara
+                              index++;        // Pindahkan ke notifikasi berikutnya
+                              speakNext();    // Panggil ulang fungsi untuk notifikasi berikutnya
+                          }
+                      }
                   );
-
-                  // Set properti tambahan untuk pengucapan
-                  utterance.lang = 'id-ID'; // Bahasa Indonesia
-                  utterance.rate = 1;       // Kecepatan bicara (0.1 - 10)
-                  utterance.pitch = 1;      // Nada bicara (0 - 2)
-                  utterance.volume = 1;     // Volume (0 - 1)
-
-                  // Speak hanya jika speechSynthesis tidak sedang sibuk
-                  if (!synth.speaking) {
-                      synth.speak(utterance);
-                      index++; // Pindahkan ke teks berikutnya setelah selesai
-                  } else {
-                      console.warn('SpeechSynthesis is busy. Skipping...');
-                  }
               }
           }
 
-          // Panggil speakNext setiap kali ada event end
-          synth.onend = speakNext;
-
           // Mulai membaca teks pertama
           speakNext();
-
-          // Hilangkan notifikasi setelah 10 detik
-          setTimeout(() => {
-              $('#notification').fadeOut();
-          }, 10000);
-        }
+      }
 
         function renderMachines(machineData) {
             let machineHTML = '';
@@ -236,10 +261,11 @@
             $('.container').html(machineHTML);
         }
 
-        // Panggil `loadData()` sekali saat halaman dimuat
         loadData();
+        loadDataNotification();
 
         setInterval(loadData, 5000); // Set interval untuk memperbarui data setiap 5 detik
+        setInterval(loadDataNotification, 11000); // Set interval untuk memperbarui data setiap 5 detik
     });
   </script>
 </body>

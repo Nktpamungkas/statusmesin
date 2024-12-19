@@ -2,7 +2,7 @@
 require_once "koneksi.php";
 
 // Ambil parameter DEPT dari request
-$dept = isset($_GET['DEPT']) ? $_GET['DEPT'] : 'BRS';
+$dept = isset($_GET['DEPT']) ? $_GET['DEPT'] : '';
 
 $resultMain = "SELECT
                 TRIM(p.CODE) AS CODE,
@@ -25,28 +25,7 @@ $newData = []; // Data untuk menyimpan informasi baru
 $machineData = []; // Data untuk menyimpan informasi mesin (HTML generator)
 
 while ($dataMain = db2_fetch_assoc($queryMain)) {
-  
-    // Cek tiket dengan STATUS '1' (notifikasi baru)
-    $tiketNotification        = "SELECT
-                                    p.CODE,
-                                    p.PMBOMCODE,
-                                    p.SYMPTOM,
-                                    p2.SEARCHDESCRIPTION
-                                  FROM
-                                    PMBREAKDOWNENTRY p
-                                  LEFT JOIN PMBOM p2 ON p2.CODE = p.PMBOMCODE 
-                                  WHERE p.PMBOMCODE = '{$dataMain['CODE']}' AND p.STATUS = '1'";
-    $resultTiketNotification  = db2_exec($conn1, $tiketNotification);
-
-    if ($dataTiketNotification = db2_fetch_assoc($resultTiketNotification)) {
-        $newData[] = [
-            'ticket_code' => $dataTiketNotification['CODE'],
-            'machine' => $dataTiketNotification['SEARCHDESCRIPTION'],
-            'description' => $dataTiketNotification['SYMPTOM']
-        ];
-    }
-
-    // Cek tiket dengan STATUS '2' (maintenance atau running)
+      // Cek tiket dengan STATUS '2' (maintenance atau running)
     $queryTiket = "SELECT * FROM PMBREAKDOWNENTRY WHERE PMBOMCODE = '{$dataMain['CODE']}' AND STATUS = '2'";
     $resultTiket = db2_exec($conn1, $queryTiket);
     $dataTiket = db2_fetch_assoc($resultTiket);
@@ -73,6 +52,33 @@ while ($dataMain = db2_fetch_assoc($queryMain)) {
               <div class='status {$status}'><span style='text-transform:uppercase'>{$status}</span></div>
             </div>
         "
+    ];
+}
+
+// Cek tiket dengan STATUS '1' (notifikasi baru)
+$tiketNotification        = "SELECT
+                                p.CODE,
+                                p.PMBOMCODE,
+                                p.SYMPTOM,
+                                p2.SEARCHDESCRIPTION
+                              FROM
+                                PMBREAKDOWNENTRY p
+                              LEFT JOIN PMBOM p2 ON p2.CODE = p.PMBOMCODE 
+                              LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p2.ABSUNIQUEID
+                              WHERE 
+                                p.STATUS = '1' 
+                                AND p.COUNTERCODE = 'PBD001'
+                                AND p.CREATIONDATETIME > '2024-12-01'
+                                AND a.FIELDNAME = 'StatusMesin' 
+                                AND a.NAMEENTITYNAME = 'PMBoM' 
+                                AND a.VALUEBOOLEAN = 1";
+$resultTiketNotification  = db2_exec($conn1, $tiketNotification);
+
+while ($dataTiketNotification = db2_fetch_assoc($resultTiketNotification)) {
+    $newData[] = [
+        'ticket_code' => $dataTiketNotification['CODE'],
+        'machine' => $dataTiketNotification['SEARCHDESCRIPTION'],
+        'description' => $dataTiketNotification['SYMPTOM']
     ];
 }
 
