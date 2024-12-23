@@ -63,6 +63,10 @@
     .maintenance {
       background-color: #ff9800; /* Orange */
     }
+    
+    .ticketing {
+      background-color:rgb(255, 17, 0); /* Orange */
+    }
 
     .machine img {
       width: 60px;

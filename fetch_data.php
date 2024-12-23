@@ -43,7 +43,7 @@ while ($dataMain = db2_fetch_assoc($queryMain)) {
 
       if ($dataTiketOpen && $dataTiketOpen['STATUS'] == '1') {
         $icon     = 'machine-openticket.png'; 
-        $status   = 'maintenance';
+        $status   = 'ticketing';
         $blink    = 'class = "blink_me"';
         $no_tiket = $dataTiketInProgress['CODE'];
       }else{
