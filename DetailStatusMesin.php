@@ -86,6 +86,7 @@
                                                                                     LEFT JOIN PMBOM p3 ON p3.CODE = p.PMBOMCODE
                                                                                     WHERE
                                                                                         p.PMBOMCODE = '$_GET[pmmachine]'
+                                                                                        AND NOT p.STATUS = 3
                                                                                     ORDER BY
 	                                                                                    p.CREATIONDATETIME DESC";
                                                                 $queryMain      = db2_exec($conn1, $resultMain);
@@ -93,7 +94,7 @@
                                                             <?php while($dataMain   = db2_fetch_assoc($queryMain)) : ?>
                                                                 <tr>
                                                                     <td><?= $dataMain['CODE']; ?></td>
-                                                                    <td><?= $dataMain['CODE']; ?></td>
+                                                                    <td><?= $dataMain['PMBOMCODE']; ?></td>
                                                                     <td><?= $dataMain['NO_MESIN']; ?></td>
                                                                     <td><?= $dataMain['SYMPTOM']; ?></td>
                                                                     <td><?= $dataMain['ASSIGNEDTOUSERID']; ?></td>

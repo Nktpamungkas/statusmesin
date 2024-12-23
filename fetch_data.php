@@ -8,7 +8,7 @@ $resultMain = "SELECT
                 TRIM(p.CODE) AS CODE,
                 COALESCE(TRIM(p.RESOURCECODE), '???') AS NO_MESIN,
                 TRIM(p.HALLNOCODE) AS DEPT,
-                SUBSTR(p.SEARCHDESCRIPTION, 1, 20) AS SEARCHDESCRIPTION
+                p.SEARCHDESCRIPTION AS SEARCHDESCRIPTION
               FROM
                 PMBOM p
               LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID
@@ -25,21 +25,33 @@ $newData = []; // Data untuk menyimpan informasi baru
 $machineData = []; // Data untuk menyimpan informasi mesin (HTML generator)
 
 while ($dataMain = db2_fetch_assoc($queryMain)) {
-      // Cek tiket dengan STATUS '2' (maintenance atau running)
-    $queryTiket = "SELECT * FROM PMBREAKDOWNENTRY WHERE PMBOMCODE = '{$dataMain['CODE']}' AND STATUS = '2'";
-    $resultTiket = db2_exec($conn1, $queryTiket);
-    $dataTiket = db2_fetch_assoc($resultTiket);
+    // Cek tiket dengan STATUS '2' (IN PROGRESS)
+    $queryTiketInProgress   = "SELECT * FROM PMBREAKDOWNENTRY WHERE PMBOMCODE = '{$dataMain['CODE']}' AND STATUS = '2'";
+    $resultTiketInProgress  = db2_exec($conn1, $queryTiketInProgress);
+    $dataTiketInProgress    = db2_fetch_assoc($resultTiketInProgress);
 
-    if ($dataTiket && $dataTiket['STATUS'] == '2') {
-        $icon   = 'icons8-machine-mtc.png'; 
-        $status = 'maintenance';
-        $blink  = 'class = "blink_me"';
-        $no_tiket = $dataTiket['CODE'];
+    if ($dataTiketInProgress && $dataTiketInProgress['STATUS'] == '2') {
+        $icon     = 'machine-maintenance.png'; 
+        $status   = 'maintenance';
+        $blink    = 'class = "blink_me"';
+        $no_tiket = $dataTiketInProgress['CODE'];
     } else {
-        $icon   = 'icons8-machine-run.png'; 
-        $status = 'running';
-        $blink  = '';
+      // Cek tiket dengan STATUS '1' (OPEN)
+      $queryTiketOpen   = "SELECT * FROM PMBREAKDOWNENTRY WHERE PMBOMCODE = '{$dataMain['CODE']}' AND STATUS = '1'";
+      $resultTiketOpen  = db2_exec($conn1, $queryTiketOpen);
+      $dataTiketOpen    = db2_fetch_assoc($resultTiketOpen);
+
+      if ($dataTiketOpen && $dataTiketOpen['STATUS'] == '1') {
+        $icon     = 'machine-openticket.png'; 
+        $status   = 'maintenance';
+        $blink    = 'class = "blink_me"';
+        $no_tiket = $dataTiketInProgress['CODE'];
+      }else{
+        $icon     = 'icons8-machine-run.png'; 
+        $status   = 'running';
+        $blink    = '';
         $no_tiket = isset($dataTiket['CODE']) ? $dataTiket['CODE'] : '';
+      }
     }
 
     // Simpan data untuk tampilan HTML

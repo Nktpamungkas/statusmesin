@@ -115,45 +115,46 @@
 
   <script>
     $(document).ready(function () {
-        const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
-        // const depts = ['FIN']; // List DEPT
-        let currentIndex = 0; // Indeks untuk melacak DEPT yang sedang dikirim
+      const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
+      // const depts = ['FIN']; // List DEPT
+      let currentIndex = 0; // Indeks untuk melacak DEPT yang sedang dikirim
 
-        function showToastInfo(message) {
-          toastr.info(message, 'Tiket Baru', {
-            closeButton: true,
-            progressBar: false,
-            timeOut: 10000, // Durasi muncul (dalam milidetik, di sini 5000ms = 5 detik)
-            extendedTimeOut: 1000, // Waktu tambahan saat mouse hover (dalam milidetik)
-            positionClass: 'toast-bottom-right', // Posisi di pojok kanan bawah
-            showEasing: "linear",
-            hideEasing: "swing",
-            showMethod: "show",
-            hideMethod: "hide"
-          });
-        }
-        
-        function toggleLoading(show) {
-            if (show) {
-                if (!$('.loading').length) {
-                    $('body').append('<div class="loading">Menyiapkan data...</div>');
-                }
-                $('.loading').show();
-            } else {
-                $('.loading').hide();
-            }
-        }
+      function showToastInfo(message) {
+        toastr.info(message, 'Tiket Baru', {
+          closeButton: true,
+          progressBar: false,
+          timeOut: 10000, // Durasi muncul (dalam milidetik, di sini 5000ms = 5 detik)
+          extendedTimeOut: 1000, // Waktu tambahan saat mouse hover (dalam milidetik)
+          positionClass: 'toast-bottom-right', // Posisi di pojok kanan bawah
+          showEasing: "linear",
+          hideEasing: "swing",
+          showMethod: "show",
+          hideMethod: "hide"
+        });
+      }
+      
+      function toggleLoading(show) {
+          if (show) {
+              if (!$('.loading').length) {
+                  $('body').append('<div class="loading">Menyiapkan data...</div>');
+              }
+              $('.loading').show();
+          } else {
+              $('.loading').hide();
+          }
+      }
 
-        function loadData() {
-            const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
-            // toggleLoading(true);
+      function loadData() {
+          const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
+          console.log(currentDept);
+
+          return new Promise((resolve, reject) => {
             $.ajax({
                 url: 'fetch_data.php', // URL ke file PHP
                 method: 'GET',
                 dataType: 'json',
                 data: { DEPT: currentDept }, // Kirim DEPT saat ini
                 success: function (response) {
-                  console.log(response);
                     // Periksa apakah machine_data ada dan tidak kosong
                     if (response.machine_data && response.machine_data.length > 0) {
                         renderMachines(response.machine_data); // Perbarui konten mesin
@@ -168,104 +169,111 @@
                     alert('Error fetching data.');
                 }
             });
-
-            // Perbarui indeks untuk siklus berikutnya
-            currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
-        }
-        
-        function loadDataNotification() {
-            const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
-            // toggleLoading(true);
-            $.ajax({
-                url: 'fetch_data.php', // URL ke file PHP
-                method: 'GET',
-                dataType: 'json',
-                data: { DEPT: currentDept }, // Kirim DEPT saat ini
-                success: function (response) {
-                  if (response.machine_data && response.machine_data.length > 0) {
-                    if (response.status === 'new_data') {
-                      console.log(response.new_data);
-                      renderNotifications(response.new_data); // Tampilkan notifikasi
-                      renderSpeakNotification(response.new_data); // Tampilkan notifikasi suara
-                    }
-                  }else {
-                    // Tampilkan placeholder atau pesan bahwa tidak ada data mesin
-                    $('.container').html('<div>No machines available for this department.</div>');
-                  }
-                },
-                error: function () {
-                    // toggleLoading(false);
-                    // console.log(response);
-                    alert('Error fetching data.');
-                }
-            });
-
-            // Perbarui indeks untuk siklus berikutnya
-            currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
-        }
-
-        function renderNotifications(newData) {
-          // Durasi jeda antar notifikasi (ms)
-          const delay = 2000;
-          
-          newData.forEach((data, index) => {
-            setTimeout(() => {
-                showToastInfo(`Mesin: ${data.machine} <br>
-                              Description: ${data.description}`);
-            }, index * delay);
           });
-        }
-
-        function renderSpeakNotification(newData) {
-          if (typeof responsiveVoice === 'undefined') {
-              console.error('ResponsiveVoice.js is not loaded or supported.');
-              alert('Text-to-speech is not supported in this browser.');
-              return;
-          }
-
-          let index = 0; // Indeks untuk menelusuri array `newData`
-
-          // Fungsi untuk membaca teks berikutnya
-          function speakNext() {
-              if (index < newData.length) {
-                  const data = newData[index];
-                  const message = `TIKET BARU, MESIN ${data.machine}`;
-
-                  // Panggil fungsi speak dari ResponsiveVoice
-                  responsiveVoice.speak(
-                      message,                // Teks yang akan dibacakan
-                      'Indonesian Female',    // Suara
-                      {
-                          rate: 1,            // Kecepatan bicara (0.1 - 2)
-                          pitch: 1,           // Nada bicara (0 - 2)
-                          volume: 1,          // Volume (0 - 1)
-                          onend: () => {      // Callback setelah selesai bicara
-                              index++;        // Pindahkan ke notifikasi berikutnya
-                              speakNext();    // Panggil ulang fungsi untuk notifikasi berikutnya
-                          }
-                      }
-                  );
-              }
-          }
-
-          // Mulai membaca teks pertama
-          speakNext();
       }
 
-        function renderMachines(machineData) {
-            let machineHTML = '';
-            machineData.forEach(data => {
-                machineHTML += data.machine_html; // Asumsi server mengirimkan HTML untuk setiap mesin
-            });
+      function loadAllDepts() {
+        loadData().then(() => {
+            currentIndex = (currentIndex + 1) % depts.length;
+            if (currentIndex < depts.length) {
+                loadAllDepts(); // Recursively call for the next department
+            }
+        });
+      }
+      
+      function loadDataNotification() {
+          const currentDept = depts[currentIndex]; // Ambil DEPT saat ini
+          // toggleLoading(true);
+          $.ajax({
+              url: 'fetch_data.php', // URL ke file PHP
+              method: 'GET',
+              dataType: 'json',
+              data: { DEPT: currentDept }, // Kirim DEPT saat ini
+              success: function (response) {
+                if (response.machine_data && response.machine_data.length > 0) {
+                  if (response.status === 'new_data') {
+                    console.log(response.new_data);
+                    renderNotifications(response.new_data); // Tampilkan notifikasi
+                    renderSpeakNotification(response.new_data); // Tampilkan notifikasi suara
+                  }
+                }else {
+                  // Tampilkan placeholder atau pesan bahwa tidak ada data mesin
+                  $('.container').html('<div>No machines available for this department.</div>');
+                }
+              },
+              error: function () {
+                  // toggleLoading(false);
+                  // console.log(response);
+                  alert('Error fetching data.');
+              }
+          });
 
-            $('.container').html(machineHTML);
+          // Perbarui indeks untuk siklus berikutnya
+          currentIndex = (currentIndex + 1) % depts.length; // Kembali ke awal jika sudah mencapai akhir array
+      }
+
+      function renderNotifications(newData) {
+        // Durasi jeda antar notifikasi (ms)
+        const delay = 2000;
+        
+        newData.forEach((data, index) => {
+          setTimeout(() => {
+              showToastInfo(`Mesin: ${data.machine} <br>
+                            Description: ${data.description}`);
+          }, index * delay);
+        });
+      }
+
+      function renderSpeakNotification(newData) {
+        if (typeof responsiveVoice === 'undefined') {
+            console.error('ResponsiveVoice.js is not loaded or supported.');
+            alert('Text-to-speech is not supported in this browser.');
+            return;
         }
 
-        loadData();
-        loadDataNotification();
+        let index = 0; // Indeks untuk menelusuri array `newData`
 
-        setInterval(loadData, 5000); // Set interval untuk memperbarui data setiap 5 detik
-        setInterval(loadDataNotification, 11000); // Set interval untuk memperbarui data setiap 5 detik
+        // Fungsi untuk membaca teks berikutnya
+        function speakNext() {
+            if (index < newData.length) {
+                const data = newData[index];
+                const message = `tiket baru, mesin "${data.machine.toLowerCase()}"`;
+
+                // Panggil fungsi speak dari ResponsiveVoice
+                responsiveVoice.speak(
+                    message,                // Teks yang akan dibacakan
+                    'Indonesian Female',    // Suara
+                    {
+                        rate: 1,            // Kecepatan bicara (0.1 - 2)
+                        pitch: 1,           // Nada bicara (0 - 2)
+                        volume: 1,          // Volume (0 - 1)
+                        onend: () => {      // Callback setelah selesai bicara
+                            index++;        // Pindahkan ke notifikasi berikutnya
+                            speakNext();    // Panggil ulang fungsi untuk notifikasi berikutnya
+                        }
+                    }
+                );
+            }
+        }
+
+        // Mulai membaca teks pertama
+        speakNext();
+      }
+
+      function renderMachines(machineData) {
+          let machineHTML = '';
+          machineData.forEach(data => {
+              machineHTML += data.machine_html; // Asumsi server mengirimkan HTML untuk setiap mesin
+          });
+
+          $('.container').html(machineHTML);
+      }
+
+      loadAllDepts(); // Start the process
+      loadDataNotification();
+
+      setInterval(loadData, 5000); // Set interval untuk memperbarui data setiap 120 detik
+      setInterval(loadDataNotification, 11000); // Set interval untuk memperbarui data setiap 5 detik
     });
   </script>
 </body>
