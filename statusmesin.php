@@ -115,7 +115,7 @@
 
   <script>
     $(document).ready(function () {
-      const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QAI', 'QCF', 'YND']; // List DEPT
+      const depts = ['BRS', 'DYE', 'FIN', 'GKG', 'LAB', 'QCF', 'YND']; // List DEPT
       // const depts = ['FIN']; // List DEPT
       let currentIndex = 0; // Indeks untuk melacak DEPT yang sedang dikirim
 
@@ -158,9 +158,6 @@
                     // Periksa apakah machine_data ada dan tidak kosong
                     if (response.machine_data && response.machine_data.length > 0) {
                         renderMachines(response.machine_data); // Perbarui konten mesin
-                    } else {
-                        // Tampilkan placeholder atau pesan bahwa tidak ada data mesin
-                        $('.container').html('<div>No machines available for this department.</div>');
                     }
                 },
                 error: function () {
@@ -272,7 +269,7 @@
       loadAllDepts(); // Start the process
       loadDataNotification();
 
-      setInterval(loadData, 5000); // Set interval untuk memperbarui data setiap 120 detik
+      setInterval(loadData, 120000); // Set interval untuk memperbarui data setiap 120 detik
       setInterval(loadDataNotification, 11000); // Set interval untuk memperbarui data setiap 5 detik
     });
   </script>
