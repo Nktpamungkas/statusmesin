@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Update Data</title>
+    <title>Outstanding Ticket MTC</title>
     <script type="text/javascript" src="files\bower_components\jquery\js\jquery.min.js"></script>
     <style>
         body {
@@ -108,8 +108,12 @@
 
                 // Loop through the data and append rows
                 data.forEach(function(row) {
+                    // Ekstrak angka jam dari TOTAL_DURASI_JAM
+                    let jamMatch = row.DURASI_FOLLOWUP.match(/^(\d+)\sJam/);
+                    let jam = jamMatch ? parseInt(jamMatch[1], 10) : 0;
+
                     tableBody.append(`
-                        <tr>
+                        <tr style="background-color: ${jam >= 1 ? '#FF6B6B' : ''}; color: ${jam >= 1 ? '#FFF' : ''}; font-weight: ${jam >= 1 ? 'bold' : ''}">
                             <td>${row.NO_MESIN}</td>
                             <td>${row.PRIORITYLEVEL}</td>
                             <td>${row.SYMPTOM}</td>
