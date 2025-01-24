@@ -70,7 +70,7 @@
     </style>
 </head>
 <body>
-<h2>Data Breakdown</h2>
+<h2>Outstanding Breakdown Report</h2>
 <table id="data-table">
     <thead>
         <tr>
@@ -86,8 +86,7 @@
             <th>Personel Mekanik</th>
             <th>Durasi Followup</th>
             <th>Ongoing Process Time</th>
-            <th>Total Durasi Jam</th>
-            <th>Total Durasi Menit</th>
+            <th>Total Durasi </th>
         </tr>
     </thead>
     <tbody>
@@ -111,7 +110,11 @@
                     // Ekstrak angka jam dari TOTAL_DURASI_JAM
                     let jamMatch = row.DURASI_FOLLOWUP.match(/^(\d+)\sJam/);
                     let jam = jamMatch ? parseInt(jamMatch[1], 10) : 0;
-
+                    
+                    // Menyusun teks durasi hanya jika tidak null
+                    let durasiText = row.TOTAL_DURASI_JAM !== '' && row.TOTAL_DURASI_MENIT !== '' 
+                                    ? `${row.TOTAL_DURASI_JAM} Jam ${row.TOTAL_DURASI_MENIT} Menit` 
+                                    : '';
                     tableBody.append(`
                         <tr style="background-color: ${jam >= 1 ? '#FF6B6B' : ''}; color: ${jam >= 1 ? '#FFF' : ''}; font-weight: ${jam >= 1 ? 'bold' : ''}">
                             <td>${row.NO_MESIN}</td>
@@ -126,8 +129,7 @@
                             <td>${row.PERSONEL_MEKANIK}</td>
                             <td>${row.DURASI_FOLLOWUP}</td>
                             <td>${row.ONGOING_PROSES_TIME}</td>
-                            <td>${row.TOTAL_DURASI_JAM}</td>
-                            <td>${row.TOTAL_DURASI_MENIT}</td>
+                            <td>${durasiText}</td>
                         </tr>
                     `);
                 });
