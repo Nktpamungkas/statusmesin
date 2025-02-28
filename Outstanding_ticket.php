@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="dist\img\ITTI_Logo index.ico" type="image/x-icon">
     <title>Outstanding Ticket MTC</title>
     <script type="text/javascript" src="files\bower_components\jquery\js\jquery.min.js"></script>
     <style>
@@ -23,16 +24,24 @@
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 8px 10px; /* Diperkecil padding */
             text-align: left;
             border: 1px solid #ddd;
+            color: #1a0808; /* Warna teks hitam */
         }
 
         th {
-            background-color: #007BFF;
-            color: #fff;
+            background-color: #2196F3; /* Biru */
             text-transform: uppercase;
             font-size: 14px;
+            color: #1a0808; /* Warna teks hitam */
+        }
+
+        th.rotate {
+            white-space: nowrap;
+            transform: rotate(-90deg);
+            transform-origin: bottom left;
+            padding: 10px 5px; /* Penyesuaian padding untuk teks yang terputar */
         }
 
         tr:hover {
@@ -45,6 +54,10 @@
 
         td {
             font-size: 14px;
+        }
+
+        td.mulai {
+            font-size: 12px; /* Ukuran font lebih kecil untuk kolom Mulai */
         }
 
         caption {
@@ -63,7 +76,7 @@
             }
 
             th, td {
-                padding: 10px;
+                padding: 6px 8px; /* Diperkecil padding untuk layar kecil */
                 font-size: 12px;
             }
         }
@@ -110,17 +123,37 @@
                     // Ekstrak angka jam dari TOTAL_DURASI_JAM
                     let jamMatch = row.DURASI_FOLLOWUP.match(/^(\d+)\sJam/);
                     let jam = jamMatch ? parseInt(jamMatch[1], 10) : 0;
+                    let status = row.STATUS === '1' ? 'Open' : row.STATUS === '2' ? 'In Progress' : 'Closed';
                     
                     // Menyusun teks durasi hanya jika tidak null
                     let durasiText = row.TOTAL_DURASI_JAM !== '' && row.TOTAL_DURASI_MENIT !== '' 
                                     ? `${row.TOTAL_DURASI_JAM} Jam ${row.TOTAL_DURASI_MENIT} Menit` 
                                     : '';
+
+                    // Tentukan warna latar belakang berdasarkan kondisi jam dan status
+                    let backgroundColor = '';
+                    let textColor = '';
+                    let fontWeight = '';
+                    
+                    if (jam >= 1) {
+                        backgroundColor = '#f24b4b'; // Merah
+                        textColor = '#FFF';
+                        fontWeight = 'bold';
+                    } else if (status === 'Closed' || row.STATUS === '3') {
+                        backgroundColor = '#a9d08e'; // Hijau
+                        textColor = '#FFF';
+                        fontWeight = 'bold';
+                    } else if (status === 'In Progress' || row.STATUS === '2') {
+                        backgroundColor = '#ffcc66'; // Kuning
+                        textColor = '#FFF';
+                        fontWeight = 'bold';
+                    }
                     tableBody.append(`
-                        <tr style="background-color: ${jam >= 1 ? '#FF6B6B' : ''}; color: ${jam >= 1 ? '#FFF' : ''}; font-weight: ${jam >= 1 ? 'bold' : ''}">
+                        <tr style="background-color: ${backgroundColor}; color: ${textColor}; font-weight: ${fontWeight}">
                             <td>${row.NO_MESIN}</td>
                             <td>${row.PRIORITYLEVEL}</td>
                             <td>${row.SYMPTOM}</td>
-                            <td>${row.CODE}</td>
+                            <td class="code-cell" data-code="${row.WO}" style="cursor: pointer;" title="Detail Activity ${row.WO}">${row.CODE}</td>
                             <td>${row.JAM_TLP}</td>
                             <td>${row.USER_TLP}</td>
                             <td>${row.PENERIMA_TLP}</td>
@@ -133,6 +166,11 @@
                         </tr>
                     `);
                 });
+                // Tambahkan event listener untuk klik pada kolom CODE
+                $('.code-cell').on('click', function() {
+                    let code = $(this).data('code');
+                    window.open(`detail_activity.php?code=${code}`, '_blank');
+                });
             },
             error: function(xhr, status, error) {
                 console.log("Error: " + error);  // Log error if AJAX fails
@@ -141,7 +179,7 @@
         });
     }
 
-    // Fetch data every 10 seconds
+    // Fetch data every 2 seconds
     setInterval(fetchData, 2000);
     
     // Initial fetch when the page loads

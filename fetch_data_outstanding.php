@@ -7,15 +7,14 @@ try {
     $sql = "SELECT DISTINCT * FROM (SELECT  
                 p.PMBOMCODE || ' ' || p2.LONGDESCRIPTION AS NO_MESIN, 
                 CASE
-                    WHEN p.PRIORITYLEVEL = 0 THEN 'Very High'
-                    WHEN p.PRIORITYLEVEL = 1 THEN 'High'
-                    WHEN p.PRIORITYLEVEL = 2 THEN 'Medium'
-                    WHEN p.PRIORITYLEVEL = 3 THEN 'Normal'
-                    WHEN p.PRIORITYLEVEL = 4 THEN 'Low'
+                    WHEN a.VALUESTRING = 1 THEN 'Normal'
+                    WHEN a.VALUESTRING = 2 THEN 'High'
+                    WHEN a.VALUESTRING = 3 THEN 'Low'
                     ELSE ''
                 END AS PRIORITYLEVEL,
                 p.SYMPTOM,
                 p.CODE,
+                p3.CODE AS WO,
                 SUBSTR(a2.VALUETIMESTAMP, 1,10) || ' ' || SUBSTR(a2.VALUETIMESTAMP, 12, 8) AS JAM_TLP,
                 a3.VALUESTRING AS USER_TLP,
                 CASE
@@ -36,14 +35,16 @@ try {
                 p.STATUS,
                 p.CREATIONDATETIME
             FROM PMBREAKDOWNENTRY p 
-            LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID AND a.FIELDNAME = 'PrioritasTicket'
+            LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID AND a.FIELDNAME = 'PrioritasTicketMTC'
             LEFT JOIN PMBOM p2 ON p2.CODE = p.PMBOMCODE 
             LEFT JOIN ADSTORAGE a2 ON a2.UNIQUEID = p.ABSUNIQUEID AND a2.FIELDNAME = 'JamTelp'
             LEFT JOIN ADSTORAGE a3 ON a3.UNIQUEID = p.ABSUNIQUEID AND a3.FIELDNAME = 'UserTelp'
             LEFT JOIN ADSTORAGE a4 ON a4.UNIQUEID = p.ABSUNIQUEID AND a4.FIELDNAME = 'Penerimatelp'
             LEFT JOIN PMWORKORDER p3 ON p3.PMBREAKDOWNENTRYCODE = p.CODE 
-            WHERE p.COUNTERCODE = 'PBD001' AND p.STATUS IN ('1', '2') 
-            ORDER BY p.CREATIONDATETIME DESC)";
+            WHERE 
+                p.COUNTERCODE = 'PBD001' AND p.STATUS IN ('1', '2', '3') 
+                AND CAST(p.CREATIONDATETIME AS DATE) BETWEEN (CURRENT_TIMESTAMP - 2 MONTH) AND CURRENT_TIMESTAMP
+            ORDER BY p.STATUS ASC, p.CREATIONDATETIME DESC)";
 
     // Execute the query
     $stmt  = db2_exec($conn1, $sql);
