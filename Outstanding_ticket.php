@@ -126,9 +126,18 @@
                     let status = row.STATUS === '1' ? 'Open' : row.STATUS === '2' ? 'In Progress' : 'Closed';
                     
                     // Menyusun teks durasi hanya jika tidak null
-                    let durasiText = row.TOTAL_DURASI_JAM !== '' && row.TOTAL_DURASI_MENIT !== '' 
-                                    ? `${row.TOTAL_DURASI_JAM} Jam ${row.TOTAL_DURASI_MENIT} Menit` 
+                    let durasiText = row.TOTAL_DURASI_BULAN !== '' && row.TOTAL_DURASI_HARI !== '' && row.TOTAL_DURASI_JAM !== '' && row.TOTAL_DURASI_MENIT !== ''  
+                                    ?   `${row.TOTAL_DURASI_BULAN} Bulan <br> 
+                                        ${row.TOTAL_DURASI_HARI} Hari <br>
+                                        ${row.TOTAL_DURASI_JAM} Jam <br>
+                                        ${row.TOTAL_DURASI_MENIT} Menit` 
                                     : '';
+                    
+                    if(durasiText === ''){
+                        durasiText = `${row.TOTAL_DURASI_MS}`;
+                    }else{
+                        durasiText = durasiText;
+                    }
 
                     // Tentukan warna latar belakang berdasarkan kondisi jam dan status
                     let backgroundColor = '';
