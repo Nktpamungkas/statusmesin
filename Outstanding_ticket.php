@@ -138,7 +138,12 @@
                     }else{
                         durasiText = durasiText;
                     }
-
+                    
+                    if(status === 'Closed'){
+                        durasiText = `${row.TOTAL_DURASI_TS}`;
+                    }else{
+                        durasiText = durasiText;
+                    }
                     // Tentukan warna latar belakang berdasarkan kondisi jam dan status
                     let backgroundColor = '';
                     let textColor = '';

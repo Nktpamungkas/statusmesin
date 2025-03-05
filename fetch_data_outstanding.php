@@ -46,6 +46,11 @@ try {
 				LPAD(DAY(p3.ENDDATE - p3.STARTDATE), 2, '0') || ' Hari ' || 
 				LPAD(HOUR(p3.ENDDATE - p3.STARTDATE), 2, '0') || ' Jam ' || 
 				LPAD(MINUTE(p3.ENDDATE - p3.STARTDATE), 2, '0') || ' Menit' AS TOTAL_DURASI_MS,
+                -- Hitungan dari tgl tlp - selesai
+                LPAD(MONTH(p3.ENDDATE - a2.VALUETIMESTAMP), 2, '0') || ' Bulan ' || 
+                LPAD(DAY(p3.ENDDATE - a2.VALUETIMESTAMP), 2, '0') || ' Hari ' || 
+                LPAD(HOUR(p3.ENDDATE - a2.VALUETIMESTAMP), 2, '0') || ' Jam ' || 
+                LPAD(MINUTE(p3.ENDDATE - a2.VALUETIMESTAMP), 2, '0') || ' Menit' AS TOTAL_DURASI_TS,
                 p.STATUS,
                 p.CREATIONDATETIME
             FROM PMBREAKDOWNENTRY p 
