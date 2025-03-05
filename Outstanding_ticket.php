@@ -144,6 +144,13 @@
                     }else{
                         durasiText = durasiText;
                     }
+
+                    if(row.JAM_TLP === ''){
+                        durasiText = `${row.TOTAL_DURASI_MS}`;
+                    }else{
+                        durasiText = durasiText;
+                    }
+
                     // Tentukan warna latar belakang berdasarkan kondisi jam dan status
                     let backgroundColor = '';
                     let textColor = '';
