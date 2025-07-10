@@ -80,20 +80,40 @@
                 font-size: 12px;
             }
         }
+
+        .status-danger {
+            background-color: #e74c3c; /* Merah */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status-warning {
+            background-color: #f39c12; /* Oranye */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .text-center {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-<h2>Outstanding Breakdown Report</h2>
+<h2>SAFETY STOCK MTC</h2>
 <table id="data-table">
     <thead>
         <tr>
-            <th>No</th>
+            <th class="text-center">No</th>
             <th>Nama Barang</th>
-            <th>Stock Minimum</th>
-            <th>Satuan</th>
-            <th>Balance</th>
-            <th>Satuan</th>
-            <th>Status</th>
+            <th class="text-center">Stock Minimum</th>
+            <th class="text-center">Satuan</th>
+            <th class="text-center">Balance</th>
+            <th class="text-center">Satuan</th>
+            <th class="text-center">Status</th>
         </tr>
     </thead>
     <tbody>
@@ -114,15 +134,29 @@
 
                 // Loop through the data and append rows
                 data.forEach(function(row, index) {
+                    let statusText = '';
+                    let statusClass = '';
+                    let statusIcon = '⚠️'; // Bisa ganti pakai icon lain / <i> FontAwesome
+
+                    if (row.STOCK_STATUS == 1) {
+                        statusText = 'Harus Ditambah';
+                        statusClass = 'status-danger'; // Kelas CSS merah
+                    } else if (row.STOCK_STATUS == 2) {
+                        statusText = 'Stok Hampir Habis';
+                        statusClass = 'status-warning'; // Kelas CSS oranye
+                    } else {
+                        statusText = '';
+                    }
+
                     tableBody.append(`
                         <tr>
-                            <td>${index + 1}</td>
+                            <td class="text-center">${index + 1}</td>
                             <td>${row.LONGDESCRIPTION}</td>
-                            <td>${row.QTY_MIN}</td>
-                            <td>${row.SATUAN}</td>
-                            <td>${row.QTY_AVAILABLE}</td>
-                            <td>${row.SATUAN}</td>
-                            <td>${row.STOCK_STATUS}</td>
+                            <td class="text-center">${row.QTY_MIN}</td>
+                            <td class="text-center">${row.SATUAN}</td>
+                            <td class="text-center">${row.QTY_AVAILABLE}</td>
+                            <td class="text-center">${row.SATUAN}</td>
+                            <td>${statusIcon}<span class="${statusClass}"> ${statusText}</span></td>
                         </tr>
                     `);
                 });

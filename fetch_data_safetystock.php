@@ -6,12 +6,12 @@ try {
     // Prepare the query
     $sql = "SELECT
                 p.LONGDESCRIPTION,
-                i.SAFETYSTOCK AS QTY_MIN,
-                b.BASEPRIMARYQUANTITYUNIT AS QTY_AVAILABLE,
+                FLOOR(i.SAFETYSTOCK) AS QTY_MIN,
+	            FLOOR(b.BASEPRIMARYQUANTITYUNIT) AS QTY_AVAILABLE,
                 p.BASEPRIMARYUNITCODE AS SATUAN,
                 CASE
-                    WHEN b.BASEPRIMARYQUANTITYUNIT < i.SAFETYSTOCK THEN 'Harus Ditambah'
-                    WHEN b.BASEPRIMARYQUANTITYUNIT < (i.SAFETYSTOCK * 2) THEN 'Stock Hampir Habis'
+                    WHEN b.BASEPRIMARYQUANTITYUNIT < i.SAFETYSTOCK THEN '1'
+                    WHEN b.BASEPRIMARYQUANTITYUNIT < (i.SAFETYSTOCK * 2) THEN '2'
                     ELSE ''
                 END AS STOCK_STATUS
             FROM
@@ -41,6 +41,7 @@ try {
             WHERE
                 p.ITEMTYPECODE = 'SPR' 
                 AND p.SUBCODE01 = 'MTC'
+                AND i.LOGICALWAREHOUSECODE = 'M201'
                 AND (
                     b.BASEPRIMARYQUANTITYUNIT < i.SAFETYSTOCK
                     OR b.BASEPRIMARYQUANTITYUNIT < (i.SAFETYSTOCK * 2)
